@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
 
     auto width = 1280;
     auto height = 720;
+
 #ifdef __EMSCRIPTEN__
     width = canvas_get_width();
     height = canvas_get_height();
@@ -70,7 +71,7 @@ int main(int argc, char* argv[]) {
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
+    ImGui::StyleColorsClassic();
     //ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer backends
@@ -100,6 +101,9 @@ int main(int argc, char* argv[]) {
     // Main loop
     bool done = false;
 
+
+    SDL_Rect rectArray[width][height];
+
     // Declare rect of square
     SDL_Rect squareRect;
 
@@ -110,6 +114,28 @@ int main(int argc, char* argv[]) {
     // Square position: In the middle of the screen
     squareRect.x = width / 2 - squareRect.w / 2;
     squareRect.y = height / 2 - squareRect.h / 2;
+
+    //
+    SDL_Rect rect2;
+
+    // Square dimensions: Half of the min(SCREEN_WIDTH, SCREEN_HEIGHT)
+    rect2.w = width;
+    rect2.h = height;
+
+    // Square position: In the middle of the screen
+    rect2.x = width / 2 - rect2.w / 2;
+    rect2.y = height / 2 - rect2.h / 2;
+
+    //Create grid
+    for (int x = 0; x < width; x++){
+        for (int y = 0; y < height; y++){
+            rectArray[x][y].w = 1;
+            rectArray[x][y].h = 1;
+
+            rectArray[x][y].x = x;
+            rectArray[x][y].y = y;
+        }
+    }
 
     // Event loop
     while (!done) {
@@ -180,9 +206,24 @@ int main(int argc, char* argv[]) {
 
         // todo: add your game logic here to be drawn before the ui rendering
         // Set renderer color red to draw the square
-        SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+        //SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         // Draw filled square
-        SDL_RenderFillRect(renderer, &squareRect);
+        //SDL_RenderFillRect(renderer, &rect2);
+
+        bool checker;
+
+        for (int x = 0; x < width; x++){
+            for (int y = 0; y < height; y++){
+                //Checker pattern
+                checker = !checker;
+                if (checker)
+                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                else
+                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+                SDL_RenderFillRect(renderer, &rectArray[x][y]);
+            }
+        }
 
         // present ui on top of your drawings
         ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
@@ -199,6 +240,8 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    //Implement 2D array deletion
 
     return 0;
 }
