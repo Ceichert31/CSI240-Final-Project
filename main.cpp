@@ -1,7 +1,6 @@
 #define SDL_MAIN_HANDLED true
 #include <iostream>
 #include <algorithm>
-
 #include <SDL.h>
 #include <SDL_image.h>
 //#include <SDL_mixer.h>
@@ -9,6 +8,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
+#include "main.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -101,8 +101,9 @@ int main(int argc, char* argv[]) {
     // Main loop
     bool done = false;
 
-
-    SDL_Rect rectArray[width][height];
+    const int sizeX = 100;
+    const int sizeY = 100;
+    SDL_Rect rectArray[sizeX][sizeY];
 
     // Declare rect of square
     SDL_Rect squareRect;
@@ -127,8 +128,8 @@ int main(int argc, char* argv[]) {
     rect2.y = height / 2 - rect2.h / 2;
 
     //Create grid
-    for (int x = 0; x < width; x++){
-        for (int y = 0; y < height; y++){
+    for (int x = 0; x < sizeX; x++){
+        for (int y = 0; y < sizeY; y++){
             rectArray[x][y].w = 1;
             rectArray[x][y].h = 1;
 
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
             ImGui::Checkbox("Another Window", &show_another_window);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            ImGui::ColorEdit3("Background Color", (float*)&clear_color); // Edit 3 floats representing a color
 
             if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
                 counter++;
@@ -201,6 +202,7 @@ int main(int argc, char* argv[]) {
         // Rendering
         ImGui::Render();
 
+        //Generates background
         SDL_SetRenderDrawColor(renderer, (Uint8)(clear_color.x * 255), (Uint8)(clear_color.y * 255), (Uint8)(clear_color.z * 255), (Uint8)(clear_color.w * 255));
         SDL_RenderClear(renderer);
 
@@ -212,8 +214,8 @@ int main(int argc, char* argv[]) {
 
         bool checker;
 
-        for (int x = 0; x < width; x++){
-            for (int y = 0; y < height; y++){
+        for (int x = 0; x < sizeX; x++){
+            for (int y = 0; y < sizeY; y++){
                 //Checker pattern
                 checker = !checker;
                 if (checker)
@@ -242,6 +244,12 @@ int main(int argc, char* argv[]) {
     SDL_Quit();
 
     //Implement 2D array deletion
+//    for (int x = 0; x < width; x++){
+//        for (int y = 0; y < height; y++){
+//            delete[] rectArray[x][y];
+//        }
+//        delete[] rectArray[x];
+//    }
 
     return 0;
 }
