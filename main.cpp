@@ -1,14 +1,8 @@
+//
+// Created by newus on 4/5/2024.
+//
 #define SDL_MAIN_HANDLED true
-#include <iostream>
-#include <algorithm>
-#include <SDL.h>
-#include <SDL_image.h>
-//#include <SDL_mixer.h>
-//#include <SDL_ttf.h>
-#include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_sdlrenderer.h"
-#include "main.h"
+#include "worm.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -24,6 +18,8 @@ return canvas.height;
 });
 #endif
 
+#include "worm.h"
+
 int main(int argc, char* argv[]) {
     // Unused argc, argv
     (void) argc;
@@ -36,6 +32,8 @@ int main(int argc, char* argv[]) {
 
     auto width = 1280;
     auto height = 720;
+
+    std::vector<Worm*> wormManager;
 
 #ifdef __EMSCRIPTEN__
     width = canvas_get_width();
@@ -94,16 +92,12 @@ int main(int argc, char* argv[]) {
     //IM_ASSERT(font != NULL);
 
     // Our state
-    bool show_demo_window = true;
-    bool show_another_window = false;
+    bool createWorm = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 wormColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     // Main loop
     bool done = false;
-
-    const int sizeX = 100;
-    const int sizeY = 100;
-    SDL_Rect rectArray[sizeX][sizeY];
 
     // Declare rect of square
     SDL_Rect squareRect;
@@ -126,17 +120,6 @@ int main(int argc, char* argv[]) {
     // Square position: In the middle of the screen
     rect2.x = width / 2 - rect2.w / 2;
     rect2.y = height / 2 - rect2.h / 2;
-
-    //Create grid
-    for (int x = 0; x < sizeX; x++){
-        for (int y = 0; y < sizeY; y++){
-            rectArray[x][y].w = 1;
-            rectArray[x][y].h = 1;
-
-            rectArray[x][y].x = x;
-            rectArray[x][y].y = y;
-        }
-    }
 
     // Event loop
     while (!done) {
@@ -162,33 +145,40 @@ int main(int argc, char* argv[]) {
         ImGui::NewFrame();
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
+        /*if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);*/
 
+        //Worm settings
+        static int segmentSlider = 1, wormLength = 1, posX = 1,  posY = 1;
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
-            static float f = 0.0f;
-            static int counter = 0;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Worm Test V2");                          // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+           /* ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
+            ImGui::Checkbox("Another Window", &show_another_window);*/
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("Background Color", (float*)&clear_color); // Edit 3 floats representing a color
+            //Worm GUI
+            ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
+            ImGui::SliderInt("X Position", &posX, 1, 1000);
+            ImGui::SliderInt("Y Position", &posY, 1, 1000);
+            ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
+            ImGui::ColorEdit3("Worm Color", (float*)&wormColor);
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+
+            ImGui::ColorEdit3("Background Color", (float*)&clear_color);// Edit 3 floats representing a color
+
+            //Create worm
+            if (ImGui::Button("Create Worm")) {
+                createWorm = true;
+            }
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
         }
 
-        // 3. Show another simple window.
+       /* // 3. Show another simple window.
         if (show_another_window)
         {
             ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
@@ -196,7 +186,7 @@ int main(int argc, char* argv[]) {
             if (ImGui::Button("Close Me"))
                 show_another_window = false;
             ImGui::End();
-        }
+        }*/
 
 
         // Rendering
@@ -207,23 +197,24 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         // todo: add your game logic here to be drawn before the ui rendering
-        // Set renderer color red to draw the square
-        //SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        // Draw filled square
-        //SDL_RenderFillRect(renderer, &rect2);
 
-        bool checker;
+        //Create new worm
+        if (createWorm){
+            wormManager.push_back(CreateWorm(segmentSlider, posX, posY, wormLength, wormColor));
+            createWorm = false;
+        }
 
-        for (int x = 0; x < sizeX; x++){
-            for (int y = 0; y < sizeY; y++){
-                //Checker pattern
-                checker = !checker;
-                if (checker)
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                else
-                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        //Render worm
+        for (int i = 0; i < wormManager.size(); i++){
+            //Get worm color
+            ImVec4 color = wormManager[i]->wormColor;
 
-                SDL_RenderFillRect(renderer, &rectArray[x][y]);
+            SDL_SetRenderDrawColor(renderer, (Uint8)(color.x * 255), (Uint8)(color.y * 255), (Uint8)(color.z * 255), (Uint8)(color.w * 255));
+            Worm::WormNode* current = wormManager[i]->head;
+            while (current != nullptr){
+                Worm::WormNode* next = current->nextNode;
+                SDL_RenderFillRect(renderer, &current->wormBody);
+                current = next;
             }
         }
 
@@ -242,14 +233,6 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-
-    //Implement 2D array deletion
-//    for (int x = 0; x < width; x++){
-//        for (int y = 0; y < height; y++){
-//            delete[] rectArray[x][y];
-//        }
-//        delete[] rectArray[x];
-//    }
 
     return 0;
 }

@@ -35,7 +35,8 @@ include(external/imgui.cmake)
 
 # add executable
 add_executable(demo main.cpp
-        main.h)
+        worm.cpp
+        worm.h)
 add_executable(demo2 main2.cpp
         main2.cpp)
 
