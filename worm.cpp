@@ -48,7 +48,40 @@ Worm::~Worm() {
     head = nullptr;
 }
 
+///Splits a worm into two at a given node
+Worm* Worm::SplitAt(Worm::WormNode* node) {
+    Worm* newWorm = new Worm(segmentSize, posX, posY, 0);
 
+    //Start at split point
+    WormNode* current = node;
+
+    //Iterate through the rest of the old worm
+    //Add the old data to the new worm
+    while (current != nullptr){
+        newWorm->AddNode(current);
+        WormNode* next = current->nextNode;
+        current = next;
+    }
+    return newWorm;
+}
+
+void Worm::AddNode(Worm::WormNode *node) {
+
+    WormNode* current = head;
+    WormNode* next = current->nextNode;
+
+    //Iterate to end of new worm
+    while (next != nullptr) {
+        next = current->nextNode;
+        current = next;
+    }
+
+    //Add desired node to end of linked list
+    wormLength++;
+    current->nextNode = node;
+}
+
+///Creates a new worm given certain parameters
 Worm *CreateWorm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor) {
     //Create new worm
     Worm* wormInstance = new Worm(segmentSize, posX, posY, wormLength);

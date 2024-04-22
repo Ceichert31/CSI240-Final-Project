@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
             ImGui::ShowDemoWindow(&show_demo_window);*/
 
         //Worm settings
-        static int segmentSlider = 1, wormLength = 1, posX = 1,  posY = 1;
+        static int segmentSlider = 1, wormLength = 1, posX = 1,  posY = 1, wormIndex = 0, segmentIndex = 1;
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
 
@@ -172,6 +172,34 @@ int main(int argc, char* argv[]) {
             //Create worm
             if (ImGui::Button("Create Worm")) {
                 createWorm = true;
+            }
+
+            //Worm Split GUI
+            ImGui::InputInt("Worm Index", &wormIndex, 0, 100);
+            ImGui::InputInt("Segment Index", &segmentIndex, 0, 100);
+
+            //Split Worm
+            if (ImGui::Button("Split Worm")) {
+                Worm* instance = wormManager[wormIndex];
+
+                Worm::WormNode* current = instance->head;
+
+                //Iterate to desired segment
+                for (int i = 0; i < segmentIndex; i++){
+                    Worm::WormNode* next = current->nextNode;
+                    current = next;
+                }
+
+                //Create new worm from this segment on
+                wormManager.push_back(instance->SplitAt(current));
+
+                //Delete data from old Worm
+                while (current != nullptr){
+                    Worm::WormNode* next = current->nextNode;
+                    delete current;
+                    current = next;
+                }
+                current = nullptr;
             }
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

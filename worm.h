@@ -11,12 +11,14 @@
 #include <algorithm>
 #include <SDL.h>
 #include <vector>
+#include <cmath>
 #include <SDL_image.h>
 //#include <SDL_mixer.h>
 //#include <SDL_ttf.h>
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
+#include "SDL_mouse.h"
 
 class Worm{
     int segmentSize, posX, posY;
@@ -31,6 +33,8 @@ public:
         WormNode* nextNode;
 
         SDL_Rect wormBody;
+
+        bool isSelected = false;
     };
 
     int wormLength;
@@ -38,6 +42,9 @@ public:
     ImVec4 wormColor;
 
     WormNode* head;
+
+    Worm* SplitAt(WormNode* node);
+    void AddNode(WormNode* node);
 };
 
 Worm* CreateWorm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor);
