@@ -144,25 +144,16 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        /*if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);*/
-
         //Worm settings
         static int segmentSlider = 1, wormLength = 1, posX = 1,  posY = 1, wormIndex = 0, segmentIndex = 1;
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
 
             ImGui::Begin("Worm Test V2");                          // Create a window called "Hello, world!" and append into it.
 
-           /* ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);*/
-
             //Worm GUI
             ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
-            ImGui::SliderInt("X Position", &posX, 1, 1000);
-            ImGui::SliderInt("Y Position", &posY, 1, 1000);
+            ImGui::SliderInt("X Position", &posX, 1, width);
+            ImGui::SliderInt("Y Position", &posY, 1, height);
             ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
             ImGui::ColorEdit3("Worm Color", (float*)&wormColor);
 
@@ -180,6 +171,14 @@ int main(int argc, char* argv[]) {
 
             //Split Worm
             if (ImGui::Button("Split Worm")) {
+
+                //Exceptions
+                if (wormIndex > wormManager.size())
+                    throw std::string("Error: Input Worm does not exist");
+
+                if (wormManager[wormIndex]->wormLength < segmentIndex)
+                    throw std::string("Error: Input Worm does not have that many segments");
+
                 Worm* instance = wormManager[wormIndex];
 
                 Worm::WormNode* current = instance->head;
@@ -190,13 +189,37 @@ int main(int argc, char* argv[]) {
                     current = next;
                 }
 
+                //Currently WIP
+                //Cleaning up old worm after data has been moved
+                //Resize old worm length
+                //Double check new worm length is the correct length
+
+                Worm::WormNode* splitPoint = current;
+
                 //Create new worm from this segment on
-                wormManager.push_back(instance->SplitAt(current));
+                wormManager.push_back(instance->SplitAt(splitPoint));
 
                 //Delete data from old Worm
                 while (current != nullptr){
+                    //Store next node
                     Worm::WormNode* next = current->nextNode;
+
+                    //Assign pointers null
+                    current->nextNode = nullptr;
+                    current = nullptr;
+
+                    //Delete node
                     delete current;
+
+                    //Go to next node
+                    current = next;
+                }
+
+                current = instance->head;
+
+                //Iterate to split point
+                for (int i = 0; i < segmentIndex - 1; i++){
+                    Worm::WormNode* next = current->nextNode;
                     current = next;
                 }
                 current = nullptr;
@@ -205,17 +228,6 @@ int main(int argc, char* argv[]) {
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
         }
-
-       /* // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }*/
-
 
         // Rendering
         ImGui::Render();

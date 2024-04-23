@@ -27,14 +27,10 @@ public:
     Worm(int segmentSize, int posX, int posY, int wormLength);
     ~Worm();
 
-    bool isMoving = true;
-
     struct WormNode{
         WormNode* nextNode;
 
         SDL_Rect wormBody;
-
-        bool isSelected = false;
     };
 
     int wormLength;
