@@ -20,6 +20,7 @@
 #include "imgui_impl_sdlrenderer.h"
 #include "SDL_mouse.h"
 
+/*
 class Worm{
     int segmentSize, posX, posY;
 
@@ -42,7 +43,32 @@ public:
     Worm* SplitAt(WormNode* node);
     void AddNode(WormNode* node);
 };
+*/
 
-Worm* CreateWorm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor);
+//Worm* CreateWorm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor);
+
+
+struct WormNode{
+    SDL_Rect wormBody;
+};
+
+struct Worm{
+    Worm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor);
+
+    std::vector<WormNode*> nodes;
+
+    int wormLength;
+
+    ImVec4 wormColor;
+
+    int segmentSize, posX, posY;
+};
+
+struct WormManager{
+    std::vector<Worm> worms;
+    void Split(int wormId, int position);
+    void CreateWorm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor);
+};
+
 
 #endif //MYPROJECT_WORM_H

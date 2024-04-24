@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     auto width = 1280;
     auto height = 720;
 
-    std::vector<Worm*> wormManager;
+    WormManager wormManager;
 
 #ifdef __EMSCRIPTEN__
     width = canvas_get_width();
@@ -64,7 +64,8 @@ int main(int argc, char* argv[]) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO &io = ImGui::GetIO();
+    (void) io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -130,12 +131,12 @@ int main(int argc, char* argv[]) {
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         SDL_Event event;
 
-        while (SDL_PollEvent(&event))
-        {
+        while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
                 done = true;
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
+                event.window.windowID == SDL_GetWindowID(window))
                 done = true;
         }
 
@@ -145,20 +146,20 @@ int main(int argc, char* argv[]) {
         ImGui::NewFrame();
 
         //Worm settings
-        static int segmentSlider = 1, wormLength = 1, posX = 1,  posY = 1, wormIndex = 0, segmentIndex = 1;
+        static int segmentSlider = 1, wormLength = 1, posX = 1, posY = 1, wormIndex = 0, segmentIndex = 1;
         {
 
-            ImGui::Begin("Worm Test V2");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Worm Test V2"); // Create a window called "Hello, world!" and append into it.
 
             //Worm GUI
             ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
             ImGui::SliderInt("X Position", &posX, 1, width);
             ImGui::SliderInt("Y Position", &posY, 1, height);
             ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
-            ImGui::ColorEdit3("Worm Color", (float*)&wormColor);
+            ImGui::ColorEdit3("Worm Color", (float *) &wormColor);
 
 
-            ImGui::ColorEdit3("Background Color", (float*)&clear_color);// Edit 3 floats representing a color
+            ImGui::ColorEdit3("Background Color", (float *) &clear_color);// Edit 3 floats representing a color
 
             //Create worm
             if (ImGui::Button("Create Worm")) {
@@ -173,106 +174,109 @@ int main(int argc, char* argv[]) {
             if (ImGui::Button("Split Worm")) {
 
                 //Exceptions
-                if (wormIndex > wormManager.size())
-                    throw std::string("Error: Input Worm does not exist");
+//                if (wormIndex > wormManager.size())
+//                    throw std::string("Error: Input Worm does not exist");
+//
+//                if (wormManager[wormIndex]->wormLength < segmentIndex)
+//                    throw std::string("Error: Input Worm does not have that many segments");
+//
+//                Worm* instance = wormManager[wormIndex];
+//
+//                Worm::WormNode* current = instance->head;
+//                Worm::WormNode* previous;
+//
+//                //Iterate to desired segment
+//                for (int i = 0; i < segmentIndex; i++){
+//                    previous = current;
+//                    Worm::WormNode* next = current->nextNode;
+//                    current = next;
+//                }
+//
+//                //Currently WIP
+//                //Cleaning up old worm after data has been moved
+//                //Resize old worm length
+//                //Double check new worm length is the correct length
+//
+//                Worm::WormNode* splitPoint = current;
+//
+//                //Create new worm from this segment on
+//                wormManager.push_back(instance->SplitAt(splitPoint));
+//
+//                //Delete data from old Worm
+//                while (current != nullptr){
+//                    //Store next node
+//                    Worm::WormNode* next = current->nextNode;
+//
+//                    //Assign pointers null
+//                    current->nextNode = nullptr;
+//                    current = nullptr;
+//
+//                    //Delete node
+//                    delete current;
+//
+//                    //Go to next node
+//                    current = next;
+//                }
+//                current = instance->head;
+//
+//                //Remove reference to split point
+//                previous = nullptr;
+//            }
 
-                if (wormManager[wormIndex]->wormLength < segmentIndex)
-                    throw std::string("Error: Input Worm does not have that many segments");
-
-                Worm* instance = wormManager[wormIndex];
-
-                Worm::WormNode* current = instance->head;
-
-                //Iterate to desired segment
-                for (int i = 0; i < segmentIndex; i++){
-                    Worm::WormNode* next = current->nextNode;
-                    current = next;
-                }
-
-                //Currently WIP
-                //Cleaning up old worm after data has been moved
-                //Resize old worm length
-                //Double check new worm length is the correct length
-
-                Worm::WormNode* splitPoint = current;
-
-                //Create new worm from this segment on
-                wormManager.push_back(instance->SplitAt(splitPoint));
-
-                //Delete data from old Worm
-                while (current != nullptr){
-                    //Store next node
-                    Worm::WormNode* next = current->nextNode;
-
-                    //Assign pointers null
-                    current->nextNode = nullptr;
-                    current = nullptr;
-
-                    //Delete node
-                    delete current;
-
-                    //Go to next node
-                    current = next;
-                }
-
-                current = instance->head;
-
-                //Iterate to split point
-                for (int i = 0; i < segmentIndex - 1; i++){
-                    Worm::WormNode* next = current->nextNode;
-                    current = next;
-                }
-                current = nullptr;
+                //Split at input point
+                //wormManager.split(wormIndex, segmentIndex);
             }
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
-        }
-
-        // Rendering
-        ImGui::Render();
-
-        //Generates background
-        SDL_SetRenderDrawColor(renderer, (Uint8)(clear_color.x * 255), (Uint8)(clear_color.y * 255), (Uint8)(clear_color.z * 255), (Uint8)(clear_color.w * 255));
-        SDL_RenderClear(renderer);
-
-        // todo: add your game logic here to be drawn before the ui rendering
-
-        //Create new worm
-        if (createWorm){
-            wormManager.push_back(CreateWorm(segmentSlider, posX, posY, wormLength, wormColor));
-            createWorm = false;
-        }
-
-        //Render worm
-        for (int i = 0; i < wormManager.size(); i++){
-            //Get worm color
-            ImVec4 color = wormManager[i]->wormColor;
-
-            SDL_SetRenderDrawColor(renderer, (Uint8)(color.x * 255), (Uint8)(color.y * 255), (Uint8)(color.z * 255), (Uint8)(color.w * 255));
-            Worm::WormNode* current = wormManager[i]->head;
-            while (current != nullptr){
-                Worm::WormNode* next = current->nextNode;
-                SDL_RenderFillRect(renderer, &current->wormBody);
-                current = next;
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                            ImGui::GetIO().Framerate);
+                ImGui::End();
             }
+
+            // Rendering
+            ImGui::Render();
+
+            //Generates background
+            SDL_SetRenderDrawColor(renderer, (Uint8) (clear_color.x * 255), (Uint8) (clear_color.y * 255),(Uint8) (clear_color.z * 255), (Uint8) (clear_color.w * 255));
+            SDL_RenderClear(renderer);
+
+            // todo: add your game logic here to be drawn before the ui rendering
+
+            //Create new worm
+            if (createWorm) {
+                wormManager.CreateWorm(segmentSlider, posX, posY, wormLength, wormColor);
+                createWorm = false;
+            }
+
+            //Render worm
+            for (int i = 0; i < wormManager.worms.size(); i++) {
+                Worm wormInstance = wormManager.worms[i];
+
+                //Get worm color
+                ImVec4 color = wormInstance.wormColor;
+
+                SDL_SetRenderDrawColor(renderer, (Uint8) (color.x * 255), (Uint8) (color.y * 255),(Uint8) (color.z * 255), (Uint8) (color.w * 255));
+
+                for (int c = 0; c < wormInstance.wormLength; c++) {
+                    WormNode *nodeInstance = wormInstance.nodes[c];
+                    SDL_RenderFillRect(renderer, &nodeInstance->wormBody);
+                }
+            }
+
+            // present ui on top of your drawings
+            ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+            SDL_RenderPresent(renderer);
+
+            SDL_Delay(0);
         }
 
-        // present ui on top of your drawings
-        ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
-        SDL_RenderPresent(renderer);
+        // Cleanup
+        ImGui_ImplSDLRenderer_Shutdown();
+        ImGui_ImplSDL2_Shutdown();
+        ImGui::DestroyContext();
 
-        SDL_Delay(0);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+
+        return 0;
     }
-
-    // Cleanup
-    ImGui_ImplSDLRenderer_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
-    return 0;
-}
