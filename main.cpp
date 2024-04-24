@@ -96,6 +96,7 @@ int main(int argc, char* argv[]) {
     bool createWorm = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImVec4 wormColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ImVec4 wormSplitColor = ImVec4(0, 0, 0, 0);
 
     // Main loop
     bool done = false;
@@ -149,24 +150,19 @@ int main(int argc, char* argv[]) {
         static int segmentSlider = 1, wormLength = 1, posX = 1, posY = 1, wormIndex = 0, segmentIndex = 1;
         {
 
-            ImGui::Begin("Worm Test V2"); // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Worm Test V3");
 
-            //Worm Creation menu
-            if (ImGui::CollapsingHeader("Create Worm", ImGuiTreeNodeFlags_DefaultOpen)){
-                //Worm GUI
-                ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
-                ImGui::SliderInt("X Position", &posX, 1, width);
-                ImGui::SliderInt("Y Position", &posY, 1, height);
-                ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
-                ImGui::ColorEdit3("Worm Color", (float *) &wormColor);
+            //Worm GUI
+            ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
+            ImGui::SliderInt("X Position", &posX, 1, width);
+            ImGui::SliderInt("Y Position", &posY, 1, height);
+            ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
+            ImGui::ColorEdit3("Worm Color", (float *) &wormColor);
+            ImGui::ColorEdit3("Background Color", (float *) &clear_color);
 
-
-                ImGui::ColorEdit3("Background Color", (float *) &clear_color);// Edit 3 floats representing a color
-
-                //Create worm
-                if (ImGui::Button("Create Worm")) {
-                    createWorm = true;
-                }
+            //Create worm
+            if (ImGui::Button("Create Worm")) {
+                createWorm = true;
             }
 
             //Worm Split & Delete settings
@@ -174,75 +170,33 @@ int main(int argc, char* argv[]) {
                 //Worm Split GUI
                 ImGui::InputInt("Worm Index", &wormIndex, 0, 100);
                 ImGui::InputInt("Segment Index", &segmentIndex, 0, 100);
+                ImGui::ColorEdit3("Split Worm Color", (float *) &wormSplitColor);
 
                 //Split Worm
                 if (ImGui::Button("Split Worm")) {
 
                     //Exceptions
-//                if (wormIndex > wormManager.size())
-//                    throw std::string("Error: Input Worm does not exist");
-//
-//                if (wormManager[wormIndex]->wormLength < segmentIndex)
-//                    throw std::string("Error: Input Worm does not have that many segments");
-//
-//                Worm* instance = wormManager[wormIndex];
-//
-//                Worm::WormNode* current = instance->head;
-//                Worm::WormNode* previous;
-//
-//                //Iterate to desired segment
-//                for (int i = 0; i < segmentIndex; i++){
-//                    previous = current;
-//                    Worm::WormNode* next = current->nextNode;
-//                    current = next;
-//                }
-//
-//                //Currently WIP
-//                //Cleaning up old worm after data has been moved
-//                //Resize old worm length
-//                //Double check new worm length is the correct length
-//
-//                Worm::WormNode* splitPoint = current;
-//
-//                //Create new worm from this segment on
-//                wormManager.push_back(instance->SplitAt(splitPoint));
-//
-//                //Delete data from old Worm
-//                while (current != nullptr){
-//                    //Store next node
-//                    Worm::WormNode* next = current->nextNode;
-//
-//                    //Assign pointers null
-//                    current->nextNode = nullptr;
-//                    current = nullptr;
-//
-//                    //Delete node
-//                    delete current;
-//
-//                    //Go to next node
-//                    current = next;
-//                }
-//                current = instance->head;
-//
-//                //Remove reference to split point
-//                previous = nullptr;
-//            }
+                    if (wormIndex > wormManager.worms.size()){
+                        throw std::invalid_argument("Error: Worm does not exist at index value");
+                    }
+                    if (wormManager.worms[wormIndex].wormLength < segmentIndex){
+                        throw std::invalid_argument("Error: Worm segment does not exist at index value");
+                    }
 
                     //Split at input point
-                    //wormManager.split(wormIndex, segmentIndex);
+                    wormManager.Split(wormIndex, segmentIndex, wormSplitColor);
                 }
 
                 ImGui::SameLine();
 
-                //Delete Worm
-                if (ImGui::Button("Delete Worm")){
-
+                //Re-Color Worm
+                if (ImGui::Button("Re-Color Worm")){
+                    wormManager.worms[wormIndex].wormColor = wormSplitColor;
                 }
             }
 
 
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                            ImGui::GetIO().Framerate);
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
             }
 

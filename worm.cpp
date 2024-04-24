@@ -1,82 +1,12 @@
 //
-// Created by newus on 4/9/2024.
+// Created by Christopher Eichert on 4/9/2024.
 //
 
 #include "worm.h"
 
-//Worm::~Worm() {
-//    //Delete all nodes
-//}
-
-///Splits a worm into two at a given node
-//Worm* Worm::SplitAt(Worm::WormNode* node) {
-//    Worm* newWorm = new Worm(segmentSize, posX, posY, 0);
-//    newWorm->head = nullptr;
-//
-//    if (node->nextNode == nullptr)
-//        return nullptr;
-//
-//    //Start at split point
-//    WormNode* current = node;
-//
-//    //Everytime we want to add a new node, we have to remove the reference to it
-//    // and its reference to the next node first
-//
-//    //Iterate through the rest of the old worm
-//    //Add the old data to the new worm
-//    while (current != nullptr){
-//        WormNode* next = current->nextNode;
-//
-//        current->nextNode = nullptr;
-//
-//        newWorm->AddNode(current);
-//
-//        current = next;
-//    }
-//    return newWorm;
-//}
-
-//Worm segment number, ie: 0, 1, 2
-//Create a new worm
-//Add all nodes after the split point to new worm
-//Delete node that was split
-//Delete all nodes after split node in original worm
-//
-
-//void Worm::AddNode(Worm::WormNode *node) {
-//
-//    //bootstrap case
-//    if (head == nullptr){
-//        head = node;
-//        return;
-//    }
-//
-//
-//
-//    WormNode* current = head;
-//
-//    //Iterate to end of new worm
-//    while (current->nextNode != nullptr) {
-//        current = current->nextNode;
-//    }
-//
-//    //Add desired node to end of linked list
-//    current->nextNode = node;
-//
-//    //Increment worm length
-//    wormLength++;
-//}
-
-///Creates a new worm given certain parameters
-//Worm *CreateWorm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor) {
-//    //Create new worm
-//    Worm* wormInstance = new Worm(segmentSize, posX, posY, wormLength);
-//    wormInstance->wormColor = wormColor;
-//    return wormInstance;
-//}
-
 //Constructor
 Worm::Worm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor){
+    //Initialize
     this->segmentSize = segmentSize;
     this->posX = posX;
     this->posY = posY;
@@ -86,7 +16,7 @@ Worm::Worm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor
 
     //Create new nodes for worm length
     for (int i = 0; i < wormLength; i++){
-        WormNode* current = new WormNode();
+        auto* current = new WormNode();
 
         //Construct segment
         current->wormBody.w = segmentSize;
@@ -95,6 +25,7 @@ Worm::Worm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor
         current->wormBody.x = posX;
         current->wormBody.y = posY;
 
+        //TODO: Add options to change direction
         //Move worm segments
         posX += segmentSize + 1;
         //posY += segmentSize;
@@ -103,15 +34,30 @@ Worm::Worm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor
     }
 }
 
-void WormManager::Split(int wormId, int position) {
+void WormManager::Split(int wormId, int position, ImVec4 wormSplitColor) {
 //Copy all elements after position to new worm and then
     // resize the old worm to the position
 
+    //Store old worm
     Worm oldWorm = worms[wormId];
 
-    Worm newWorm(oldWorm.segmentSize, oldWorm.posX, oldWorm.posY, oldWorm.wormLength, oldWorm.wormColor);
+    //Create new worm
+    Worm newWorm(oldWorm.segmentSize, oldWorm.posX, oldWorm.posY, 0, wormSplitColor);
 
-    //worms.resize(1);
+    //Populate new worm
+    for (int i = position; i < oldWorm.wormLength; i++){
+        auto* current = oldWorm.nodes[i];
+
+        newWorm.nodes.push_back(current);
+        newWorm.wormLength++;
+    }
+
+    //Resize old worm to end at selected position
+    oldWorm.nodes.resize(position);
+    oldWorm.wormLength = position;
+
+    //Add new worm
+    worms.push_back(newWorm);
 }
 
 void WormManager::CreateWorm(int segmentSize, int posX, int posY, int wormLength, ImVec4 wormColor) {
