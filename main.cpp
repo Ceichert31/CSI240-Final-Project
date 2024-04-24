@@ -151,29 +151,34 @@ int main(int argc, char* argv[]) {
 
             ImGui::Begin("Worm Test V2"); // Create a window called "Hello, world!" and append into it.
 
-            //Worm GUI
-            ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
-            ImGui::SliderInt("X Position", &posX, 1, width);
-            ImGui::SliderInt("Y Position", &posY, 1, height);
-            ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
-            ImGui::ColorEdit3("Worm Color", (float *) &wormColor);
+            //Worm Creation menu
+            if (ImGui::CollapsingHeader("Create Worm", ImGuiTreeNodeFlags_DefaultOpen)){
+                //Worm GUI
+                ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
+                ImGui::SliderInt("X Position", &posX, 1, width);
+                ImGui::SliderInt("Y Position", &posY, 1, height);
+                ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
+                ImGui::ColorEdit3("Worm Color", (float *) &wormColor);
 
 
-            ImGui::ColorEdit3("Background Color", (float *) &clear_color);// Edit 3 floats representing a color
+                ImGui::ColorEdit3("Background Color", (float *) &clear_color);// Edit 3 floats representing a color
 
-            //Create worm
-            if (ImGui::Button("Create Worm")) {
-                createWorm = true;
+                //Create worm
+                if (ImGui::Button("Create Worm")) {
+                    createWorm = true;
+                }
             }
 
-            //Worm Split GUI
-            ImGui::InputInt("Worm Index", &wormIndex, 0, 100);
-            ImGui::InputInt("Segment Index", &segmentIndex, 0, 100);
+            //Worm Split & Delete settings
+            if (ImGui::CollapsingHeader("Select Worm")){
+                //Worm Split GUI
+                ImGui::InputInt("Worm Index", &wormIndex, 0, 100);
+                ImGui::InputInt("Segment Index", &segmentIndex, 0, 100);
 
-            //Split Worm
-            if (ImGui::Button("Split Worm")) {
+                //Split Worm
+                if (ImGui::Button("Split Worm")) {
 
-                //Exceptions
+                    //Exceptions
 //                if (wormIndex > wormManager.size())
 //                    throw std::string("Error: Input Worm does not exist");
 //
@@ -223,9 +228,18 @@ int main(int argc, char* argv[]) {
 //                previous = nullptr;
 //            }
 
-                //Split at input point
-                //wormManager.split(wormIndex, segmentIndex);
+                    //Split at input point
+                    //wormManager.split(wormIndex, segmentIndex);
+                }
+
+                ImGui::SameLine();
+
+                //Delete Worm
+                if (ImGui::Button("Delete Worm")){
+
+                }
             }
+
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                             ImGui::GetIO().Framerate);
