@@ -1,5 +1,5 @@
 //
-// Created by newus on 4/9/2024.
+// Created by Christopher Eichert on 4/9/2024.
 //
 
 #ifndef MYPROJECT_WORM_H
@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <SDL.h>
 #include <vector>
-#include <cmath>
 #include <SDL_image.h>
 //#include <SDL_mixer.h>
 //#include <SDL_ttf.h>

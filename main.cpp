@@ -1,5 +1,5 @@
 //
-// Created by newus on 4/5/2024.
+// Created by Christopher Eichert on 4/5/2024.
 //
 #define SDL_MAIN_HANDLED true
 #include "worm.h"
@@ -32,8 +32,6 @@ int main(int argc, char* argv[]) {
 
     auto width = 1280;
     auto height = 720;
-
-    WormManager wormManager;
 
 #ifdef __EMSCRIPTEN__
     width = canvas_get_width();
@@ -77,59 +75,28 @@ int main(int argc, char* argv[]) {
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer_Init(renderer);
 
-    // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != NULL);
-
-    // Our state
-    bool createWorm = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    ImVec4 wormColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ImVec4 wormSplitColor = ImVec4(0, 0, 0, 0);
-
     // Main loop
     bool done = false;
 
-    // Declare rect of square
-    SDL_Rect squareRect;
+    //Worm Vector
+    WormManager wormManager;
 
-    // Square dimensions: Half of the min(SCREEN_WIDTH, SCREEN_HEIGHT)
-    squareRect.w = std::min(width, height) / 2;
-    squareRect.h = std::min(width, height) / 2;
+    //Worm settings
+    static int segmentSlider = 1,
+    wormLength = 1,
+    posX = 1,
+    posY = 1,
+    wormIndex = 0,
+    segmentIndex = 1;
+    bool createWorm = false;
 
-    // Square position: In the middle of the screen
-    squareRect.x = width / 2 - squareRect.w / 2;
-    squareRect.y = height / 2 - squareRect.h / 2;
-
-    //
-    SDL_Rect rect2;
-
-    // Square dimensions: Half of the min(SCREEN_WIDTH, SCREEN_HEIGHT)
-    rect2.w = width;
-    rect2.h = height;
-
-    // Square position: In the middle of the screen
-    rect2.x = width / 2 - rect2.w / 2;
-    rect2.y = height / 2 - rect2.h / 2;
+    // Color Settings
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f),
+    wormColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
+    wormSplitColor = ImVec4(0, 0, 0, 0);
 
     // Event loop
     while (!done) {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         SDL_Event event;
 
         while (SDL_PollEvent(&event)) {
@@ -146,27 +113,26 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        //Worm settings
-        static int segmentSlider = 1, wormLength = 1, posX = 1, posY = 1, wormIndex = 0, segmentIndex = 1;
         {
+            ImGui::Begin("Worm Builder V3");
 
-            ImGui::Begin("Worm Test V3");
+            if (ImGui::CollapsingHeader("Create Worm Settings")) {
+                //Worm GUI
+                ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
+                ImGui::SliderInt("X Position", &posX, 1, width);
+                ImGui::SliderInt("Y Position", &posY, 1, height);
+                ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
+                ImGui::ColorEdit3("Worm Color", (float *) &wormColor);
+                ImGui::ColorEdit3("Background Color", (float *) &clear_color);
 
-            //Worm GUI
-            ImGui::SliderInt("Segment Size", &segmentSlider, 1, 100);
-            ImGui::SliderInt("X Position", &posX, 1, width);
-            ImGui::SliderInt("Y Position", &posY, 1, height);
-            ImGui::SliderInt("Worm Length", &wormLength, 1, 100);
-            ImGui::ColorEdit3("Worm Color", (float *) &wormColor);
-            ImGui::ColorEdit3("Background Color", (float *) &clear_color);
-
-            //Create worm
-            if (ImGui::Button("Create Worm")) {
-                createWorm = true;
+                //Create worm
+                if (ImGui::Button("Create Worm")) {
+                    createWorm = true;
+                }
             }
 
             //Worm Split & Delete settings
-            if (ImGui::CollapsingHeader("Select Worm")){
+            if (ImGui::CollapsingHeader("Edit Worm Settings")){
                 //Worm Split GUI
                 ImGui::InputInt("Worm Index", &wormIndex, 0, 100);
                 ImGui::InputInt("Segment Index", &segmentIndex, 0, 100);
@@ -194,9 +160,8 @@ int main(int argc, char* argv[]) {
                     wormManager.worms[wormIndex].wormColor = wormSplitColor;
                 }
             }
-
-
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            //FPS Debug
+                //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
             }
 
